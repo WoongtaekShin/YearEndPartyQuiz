@@ -21,9 +21,10 @@ class TextDisplay:
         self.lock = threading.Lock()
         self.event_queue = queue.Queue()
         self.showing_category = True
+        self.stop_thread = False
 
     def display_character(self):
-        while self.is_playing:
+        while self.is_playing and not self.stop_thread:
             with self.lock:
                 if self.current_position < len(self.text):
                     self.displayed_text += self.text[self.current_position]
@@ -59,6 +60,13 @@ class TextDisplay:
             self.is_playing = False
             self.showing_category = False
             self.event_queue.put(('show_all', {'full_text': self.text, 'answer': self.answer}))
+
+    def stop(self):
+        with self.lock:
+            self.stop_thread = True
+            self.is_playing = False
+            if self.display_thread and self.display_thread.is_alive():
+                self.display_thread.join(timeout=0.1)
 
 class TextDisplayManager:
     def __init__(self):
@@ -144,25 +152,18 @@ def handle_show_all():
 
 @socketio.on('next_text')
 def handle_next_text():
+    if text_display_manager.current_display:
+        text_display_manager.current_display.stop()
+    
     next_text = text_display_manager.next_text()
     text_display = TextDisplay(next_text['category'], next_text['text'], next_text['answer'])
     text_display_manager.current_display = text_display
     
-    # 새로운 텍스트로 변경할 때 showing_category를 True로 설정
+    # 새로운 텍스트로 변경할 때 초기 설정
     text_display.showing_category = True
-    text_display.displayed_text = ""
-    text_display.current_position = 0
     
     # 이벤트 처리 스레드 시작
-    def process_events():
-        while True:
-            try:
-                event_type, data = text_display.event_queue.get(timeout=1)
-                socketio.emit(event_type, data)
-            except queue.Empty:
-                pass
-
-    threading.Thread(target=process_events, daemon=True).start()
+    threading.Thread(target=process_events, args=(text_display,), daemon=True).start()
     
     emit('text_changed', {
         'text': f"[카테고리: {next_text['category']}]",
@@ -172,31 +173,33 @@ def handle_next_text():
 
 @socketio.on('previous_text')
 def handle_previous_text():
+    if text_display_manager.current_display:
+        text_display_manager.current_display.stop()
+    
     previous_text = text_display_manager.previous_text()
     text_display = TextDisplay(previous_text['category'], previous_text['text'], previous_text['answer'])
     text_display_manager.current_display = text_display
     
-    # 새로운 텍스트로 변경할 때 showing_category를 True로 설정
+    # 새로운 텍스트로 변경할 때 초기 설정
     text_display.showing_category = True
-    text_display.displayed_text = ""
-    text_display.current_position = 0
     
     # 이벤트 처리 스레드 시작
-    def process_events():
-        while True:
-            try:
-                event_type, data = text_display.event_queue.get(timeout=1)
-                socketio.emit(event_type, data)
-            except queue.Empty:
-                pass
-
-    threading.Thread(target=process_events, daemon=True).start()
+    threading.Thread(target=process_events, args=(text_display,), daemon=True).start()
     
     emit('text_changed', {
         'text': f"[카테고리: {previous_text['category']}]",
         'current_index': text_display_manager.current_index,
         'total_texts': len(text_display_manager.texts)
     })
+
+# 공통으로 사용되는 process_events 함수를 전역으로 이동
+def process_events(text_display):
+    while True:
+        try:
+            event_type, data = text_display.event_queue.get(timeout=1)
+            socketio.emit(event_type, data)
+        except queue.Empty:
+            pass
 
 if __name__ == '__main__':
     port = 5000

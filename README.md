@@ -25,12 +25,14 @@
 ### Windows 사용자
 
 1. 이 저장소를 다운로드하거나 클론합니다
+
 ```bash
 git clone [repository-url]
 cd quiz-game
 ```
 
 2. 동봉된 실행 스크립트를 실행합니다
+
 ```bash
 run.bat
 ```
@@ -38,12 +40,14 @@ run.bat
 ### macOS/Linux 사용자
 
 1. 이 저장소를 다운로드하거나 클론합니다
+
 ```bash
 git clone [repository-url]
 cd quiz-game
 ```
 
 2. 실행 스크립트에 실행 권한을 부여하고 실행합니다
+
 ```bash
 chmod +x run.sh
 ./run.sh
@@ -52,6 +56,7 @@ chmod +x run.sh
 ### 수동 설치 (모든 운영체제)
 
 1. 가상환경 생성 및 활성화
+
 ```bash
 # Windows
 python -m venv venv
@@ -63,11 +68,13 @@ source venv/bin/activate
 ```
 
 2. 필요한 패키지 설치
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. 게임 실행
+
 ```bash
 python app.py
 ```
@@ -93,22 +100,24 @@ python app.py
 
 ```json
 {
-    "questions": [
-        {
-            "category": "카테고리명",
-            "text": "문제 내용을 여기에 작성합니다.\n여러 줄로 작성 가능합니다.",
-            "answer": "정답"
-        }
-    ]
+  "questions": [
+    {
+      "category": "카테고리명",
+      "text": "문제 내용을 여기에 작성합니다.\n여러 줄로 작성 가능합니다.",
+      "answer": "정답"
+    }
+  ]
 }
 ```
 
 ## 🔧 문제 해결
 
 1. **포트 5000번이 이미 사용 중인 경우**
+
    - app.py 파일에서 port 번호를 변경하여 사용 (예: 5001, 8000 등)
 
 2. **한글 깨짐 발생 시**
+
    - 모든 파일이 UTF-8 인코딩으로 저장되었는지 확인
 
 3. **모듈 설치 오류 발생 시**
@@ -131,4 +140,4 @@ python app.py
 
 ## 📮 문의사항
 
-문제점을 발견하셨거나 기능 제안이 있으시다면 GitHub Issues에 등록해 주세요. 
+문제점을 발견하셨거나 기능 제안이 있으시다면 GitHub Issues에 등록해 주세요.
